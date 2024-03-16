@@ -15,5 +15,19 @@ services:
     restart: always
     env_file:
       - ".env"
+    depends_on:
+      - db
     ports:
       - "5050:80"
+
+  api:
+    build:
+      context: "./api"
+      dockerfile: "./Dockerfile"
+    restart: always
+    env_file:
+      - ".env"
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
