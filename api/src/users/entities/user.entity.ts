@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  Table,
   UpdateDateColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -17,19 +16,19 @@ export class User {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
   id: string;
 
-  @ApiProperty()
-  @Column({ name: 'email', unique: true, nullable: false })
-  email: string;
+  @ApiProperty({ example: 'john.doe' })
+  @Column({ name: 'username', unique: true, nullable: false })
+  username: string;
 
   @ApiProperty()
-  @Column({ name: 'password', nullable: false })
+  @Column({ name: 'password', nullable: false, select: false })
   password: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'John' })
   @Column({ name: 'first_name', nullable: true })
   firstName: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'Doe' })
   @Column({ name: 'last_name', nullable: true })
   lastName: string;
 
@@ -41,8 +40,13 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ApiProperty()
-  @UpdateDateColumn({ name: 'verified_at', type: 'timestamp with time zone' })
+  @ApiPropertyOptional()
+  @Column({
+    name: 'verified_at',
+    nullable: true,
+    default: null,
+    type: 'timestamp with time zone',
+  })
   verifiedAt: Date;
 
   @BeforeInsert()
