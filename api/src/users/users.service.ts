@@ -25,13 +25,15 @@ export class UsersService {
     return await this.userRepository.save(createdUser);
   }
 
-  async update(user: User): Promise<User> {
-    const prevUserData = await this.findById(user.id);
+  async update(id: string, user: User): Promise<User> {
+    const prevUserData = await this.findById(id);
+    delete user.id;
+    delete user.username;
     const nextUserData = this.userRepository.create({
       ...prevUserData,
       ...user,
     });
-    await this.userRepository.update(user.id, nextUserData);
+    await this.userRepository.update(id, nextUserData);
     return await this.findById(user.id);
   }
 
