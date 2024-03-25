@@ -27,8 +27,6 @@ export class UsersService {
 
   async update(id: string, user: User): Promise<User> {
     const prevUserData = await this.findById(id);
-    delete user.id;
-    delete user.username;
     const nextUserData = this.userRepository.create({
       ...prevUserData,
       ...user,
