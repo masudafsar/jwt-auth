@@ -31,6 +31,15 @@ export class UsersController {
     return this.usersService.findById(id);
   }
 
+  @Get('username/:username')
+  @ApiOperation({ summary: 'Get user details by username' })
+  async detailsByUsername(
+    @Param('username')
+    username: string,
+  ): Promise<User> {
+    return this.usersService.findByUsername(username);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
   async create(
