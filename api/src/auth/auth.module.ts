@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { AccessTokenStrategy } from '~/src/auth/strategies/access-token.strategy';
-import { RefreshTokenStrategy } from '~/src/auth/strategies/refresh-token.strategy';
 import { UsersModule } from '~/src/users/users.module';
+import { AccessTokenStrategy } from './strategies/access-token.strategy';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 
 @Module({
   imports: [JwtModule.register({}), UsersModule],

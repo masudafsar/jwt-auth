@@ -1,7 +1,7 @@
 import * as process from 'process';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from '~/src/app/app.module';
 import * as packageConfig from '../package.json';
 
 async function bootstrap() {
@@ -23,4 +23,4 @@ async function bootstrap() {
   await app.listen(process.env.API_PORT || 3000);
 }
 
-bootstrap();
+void bootstrap();
