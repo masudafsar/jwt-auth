@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { hash } from 'argon2';
 import { UsersService } from '~/src/users/users.service';
+import { jwtConfigType } from './config/jwt.config';
 import { RegisterDto } from './dtos/register.dto';
 
 @Injectable()
@@ -36,6 +37,7 @@ export class AuthService {
   }
 
   private async getToken(id: string, username: string) {
+    const secrets = this.configService.get<jwtConfigType>('jwtConfig');
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         {
@@ -43,7 +45,7 @@ export class AuthService {
           username,
         },
         {
-          secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+          secret: secrets.accessSecret,
           expiresIn: '15m',
         },
       ),
@@ -53,7 +55,7 @@ export class AuthService {
           username,
         },
         {
-          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          secret: secrets.refreshSecret,
           expiresIn: '7d',
         },
       ),
