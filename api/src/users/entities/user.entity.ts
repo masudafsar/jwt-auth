@@ -4,11 +4,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { RefreshToken } from '~/src/auth/entities/refresh-token.entity';
 
 @Entity()
 export class User {
@@ -48,6 +50,9 @@ export class User {
     type: 'timestamp with time zone',
   })
   verifiedAt: Date;
+
+  @OneToMany(() => RefreshToken, (token) => token.user)
+  tokens: RefreshToken[];
 
   @BeforeInsert()
   @BeforeUpdate()
