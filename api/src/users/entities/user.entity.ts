@@ -28,11 +28,11 @@ export class User {
 
   @ApiPropertyOptional({ example: 'John' })
   @Column({ name: 'first_name', nullable: true })
-  firstName: string;
+  firstName: string | null;
 
   @ApiPropertyOptional({ example: 'Doe' })
   @Column({ name: 'last_name', nullable: true })
-  lastName: string;
+  lastName: string | null;
 
   @ApiPropertyOptional()
   @CreateDateColumn({ name: 'joined_at', type: 'timestamp with time zone' })
@@ -49,9 +49,13 @@ export class User {
     default: null,
     type: 'timestamp with time zone',
   })
-  verifiedAt: Date;
+  verifiedAt: Date | null;
 
-  @OneToMany(() => RefreshToken, (token) => token.user)
+  @OneToMany(() => RefreshToken, (token) => token.user, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+    nullable: true,
+  })
   tokens: RefreshToken[];
 
   @BeforeInsert()

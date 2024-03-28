@@ -12,7 +12,7 @@ export class CreateUserRefreshTokenRelation1711416214783
     `);
     await queryRunner.query(`
       ALTER TABLE "refresh_token"
-      ADD CONSTRAINT "FK_8e913e288156c133999341156ad" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+      ADD CONSTRAINT "FK_8e913e288156c133999341156ad" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE
     `);
   }
 

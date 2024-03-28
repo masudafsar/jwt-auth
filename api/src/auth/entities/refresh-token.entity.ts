@@ -22,7 +22,11 @@ export class RefreshToken {
   @Column({ name: 'title', nullable: true })
   title: string;
 
-  @ManyToOne(() => User, (user) => user.tokens)
+  @ManyToOne(() => User, (user) => user.tokens, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+    nullable: true,
+  })
   user: User;
 
   @ApiPropertyOptional()
