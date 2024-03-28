@@ -5,6 +5,7 @@ import { hash } from 'argon2';
 import { UsersService } from '~/src/users/users.service';
 import { jwtConfigType } from './config/jwt.config';
 import { RegisterDto } from './dtos/register.dto';
+import { AuthTokenDto } from '~/src/auth/dtos/auth-token.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,12 +15,12 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto): Promise<AuthTokenDto> {
     try {
       const isUserExist = await this.usersService.findByUsername(
         registerDto.username,
       );
-      if (isUserExist) throw new BadRequestException('User already exists');
+      if (isUserExist) throw new BadRequestException('Username was taken.');
     } catch (e) {}
 
     const hashedPassword = await hash(registerDto.password);
@@ -32,11 +33,11 @@ export class AuthService {
     return tokens;
   }
 
-  async updateRefresh(id: string, token: string) {
+  async updateRefresh(id: string, token: string): Promise<void> {
     // todo: implement token service first
   }
 
-  private async getToken(id: string, username: string) {
+  private async getToken(id: string, username: string): Promise<AuthTokenDto> {
     const secrets = this.configService.get<jwtConfigType>('jwtConfig');
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
