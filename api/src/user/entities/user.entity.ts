@@ -23,7 +23,7 @@ export class User {
   @Column({ name: 'username', unique: true, nullable: false })
   username: string;
 
-  @ApiProperty()
+  // @ApiProperty({})
   @Column({ name: 'password', nullable: false, select: false })
   password: string;
 
