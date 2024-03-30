@@ -23,11 +23,7 @@ export class AuthService {
       if (isUserExist) throw new BadRequestException('Username was taken.');
     } catch (e) {}
 
-    const hashedPassword = await hash(registerDto.password);
-    const newUser = await this.usersService.create({
-      ...registerDto,
-      password: hashedPassword,
-    });
+    const newUser = await this.usersService.create(registerDto);
     const tokens = await this.getToken(newUser.id, newUser.username);
     await this.updateRefresh(newUser.id, tokens.refreshToken);
     return tokens;

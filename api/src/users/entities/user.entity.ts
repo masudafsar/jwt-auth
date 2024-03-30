@@ -1,3 +1,5 @@
+import * as process from 'process';
+import { hash, verify } from 'argon2';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -8,7 +10,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { RefreshToken } from '~/src/auth/entities/refresh-token.entity';
 
@@ -60,12 +61,17 @@ export class User {
 
   @BeforeInsert()
   @BeforeUpdate()
-  async hashPassword() {
+  async hashPassword(): Promise<void> {
     if (!this.password) return;
-    this.password = await bcrypt.hash(this.password, 10);
+    this.password = await hash(this.password, {
+      secret: Buffer.from(process.env.PASSWORD_HASH_SECRET),
+      salt: Buffer.from(process.env.PASSWORD_HASH_SALT),
+    });
   }
 
-  async validatePassword(password: string) {
-    return await bcrypt.compare(this.password, password);
+  async verifyPassword(password: string): Promise<boolean> {
+    return await verify(this.password, password, {
+      secret: Buffer.from(process.env.PASSWORD_HASH_SECRET),
+    });
   }
 }
