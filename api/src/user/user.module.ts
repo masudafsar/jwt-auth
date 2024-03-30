@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
 import { User } from './entities/user.entity';
 import { secretConfig } from './configs/secret.config';
 
@@ -15,8 +15,8 @@ import { secretConfig } from './configs/secret.config';
     }),
     TypeOrmModule.forFeature([User]),
   ],
-  controllers: [UsersController],
-  providers: [UsersService],
-  exports: [UsersService],
+  controllers: [UserController],
+  providers: [UserService],
+  exports: [UserService],
 })
-export class UsersModule {}
+export class UserModule {}

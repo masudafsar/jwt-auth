@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { User } from '~/src/users/entities/user.entity';
+import { User } from '~/src/user/entities/user.entity';
 
 @Entity()
 export class RefreshToken {

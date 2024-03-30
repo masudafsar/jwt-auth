@@ -8,16 +8,16 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 import { User } from './entities/user.entity';
 
-@ApiTags('Users')
-@Controller({ path: 'users', version: ['1'] })
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+@ApiTags('User')
+@Controller({ path: 'user', version: ['1'] })
+export class UserController {
+  constructor(private readonly usersService: UserService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Get all user' })
   async list(): Promise<User[]> {
     return this.usersService.findAll();
   }

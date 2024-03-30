@@ -2,15 +2,15 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { hash } from 'argon2';
-import { UsersService } from '~/src/users/users.service';
-import { jwtConfigType } from './config/jwt.config';
+import { UserService } from '~/src/user/user.service';
+import { jwtConfigType } from './configs/jwt.config';
 import { RegisterDto } from './dtos/register.dto';
 import { AuthTokenDto } from '~/src/auth/dtos/auth-token.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
+    private readonly usersService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
@@ -24,7 +24,7 @@ export class AuthService {
     } catch (e) {}
 
     const newUser = await this.usersService.create(registerDto);
-    const tokens = await this.getToken(newUser.id, newUser.username);
+    const tokens = await this.generateAuthTokens(newUser.id, newUser.username);
     await this.updateRefresh(newUser.id, tokens.refreshToken);
     return tokens;
   }
@@ -33,7 +33,10 @@ export class AuthService {
     // todo: implement token service first
   }
 
-  private async getToken(id: string, username: string): Promise<AuthTokenDto> {
+  private async generateAuthTokens(
+    id: string,
+    username: string,
+  ): Promise<AuthTokenDto> {
     const secrets = this.configService.get<jwtConfigType>('jwtConfig');
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
