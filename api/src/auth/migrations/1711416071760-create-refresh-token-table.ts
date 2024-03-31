@@ -12,7 +12,7 @@ export class CreateRefreshTokenTable1711416071760
         "token" character varying NOT NULL,
         "title" character varying,
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-        "revoked_at" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "revoked_at" TIMESTAMP WITH TIME ZONE,
         CONSTRAINT "UQ_c31d0a2f38e6e99110df62ab0af" UNIQUE ("token"),
         CONSTRAINT "PK_b575dd3c21fb0831013c909e7fe" PRIMARY KEY ("id")
       )

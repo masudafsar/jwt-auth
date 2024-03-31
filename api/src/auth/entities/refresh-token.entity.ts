@@ -34,6 +34,11 @@ export class RefreshToken {
   createdAt: Date;
 
   @ApiPropertyOptional()
-  @Column({ name: 'revoked_at', type: 'timestamp with time zone' })
-  revokedAt: Date;
+  @Column({
+    name: 'revoked_at',
+    nullable: true,
+    default: null,
+    type: 'timestamp with time zone',
+  })
+  revokedAt: Date | null;
 }
