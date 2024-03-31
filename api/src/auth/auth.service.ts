@@ -1,21 +1,28 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { hash } from 'argon2';
 import { UserService } from '~/src/user/user.service';
 import { jwtConfigType } from './configs/jwt.config';
 import { RegisterDto } from './dtos/register.dto';
-import { AuthTokenDto } from '~/src/auth/dtos/auth-token.dto';
+import { AuthTokenDto } from './dtos/auth-token.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RefreshToken } from '~/src/auth/entities/refresh-token.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepository: Repository<RefreshToken>,
     private readonly usersService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<AuthTokenDto> {
+  async register(
+    registerDto: RegisterDto,
+    title: string,
+  ): Promise<AuthTokenDto> {
     try {
       const isUserExist = await this.usersService.findByUsername(
         registerDto.username,
@@ -25,12 +32,22 @@ export class AuthService {
 
     const newUser = await this.usersService.create(registerDto);
     const tokens = await this.generateAuthTokens(newUser.id, newUser.username);
-    await this.updateRefresh(newUser.id, tokens.refreshToken);
+    await this.updateRefresh(newUser.id, tokens.refreshToken, title);
     return tokens;
   }
 
-  async updateRefresh(id: string, token: string): Promise<void> {
-    // todo: implement token service first
+  async updateRefresh(
+    id: string,
+    token: string,
+    title?: string,
+  ): Promise<void> {
+    const user = await this.usersService.findById(id);
+    const refreshToken = this.refreshTokenRepository.create({
+      user,
+      token,
+      title: title || null,
+    });
+    await this.refreshTokenRepository.save(refreshToken);
   }
 
   private async generateAuthTokens(
