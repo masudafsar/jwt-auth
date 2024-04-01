@@ -1,8 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { UserService } from '~/src/user/user.service';
 import { jwtConfigType } from './configs/jwt.config';
 import { RegisterDto } from './dtos/register.dto';
@@ -43,6 +43,26 @@ export class AuthService {
     return tokens;
   }
 
+  async logout(userId: string, refreshToken: string): Promise<void> {
+    const user = await this.usersService.findOrFailById(userId);
+
+    delete user.joinedAt;
+    delete user.updatedAt;
+    delete user.verifiedAt;
+    delete user.username;
+    delete user.password;
+
+    const token = await this.refreshTokenRepository.findOneBy({
+      user: user,
+      token: refreshToken,
+      revokedAt: IsNull(),
+    });
+    if (!token) throw new NotFoundException(`Token not found`);
+
+    const revokedToken = this.refreshTokenRepository.create({ revokedAt: new Date() });
+    await this.refreshTokenRepository.update(token.id, revokedToken);
+  }
+
   async updateRefresh(id: string, token: string, title?: string): Promise<void> {
     const user = await this.usersService.findOrFailById(id);
     const refreshToken = this.refreshTokenRepository.create({
@@ -73,7 +93,7 @@ export class AuthService {
         } as JwtPayloadType,
         {
           secret: secrets.refreshSecret,
-          expiresIn: '1m',
+          expiresIn: '30d',
         },
       ),
     ]);

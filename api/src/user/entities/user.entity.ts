@@ -24,7 +24,7 @@ export class User {
   username: string;
 
   // @ApiProperty({})
-  @Column({ name: 'password', nullable: false, select: false })
+  @Column({ name: 'password', nullable: false })
   password: string;
 
   @ApiPropertyOptional({ example: 'John' })

@@ -6,10 +6,7 @@ import { Request } from 'express';
 import { JwtPayloadType } from '../types/jwt-payload-type';
 
 @Injectable()
-export class RefreshTokenStrategy extends PassportStrategy(
-  Strategy,
-  'jwt-refresh',
-) {
+export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -18,10 +15,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  validate(
-    req: Request,
-    payload: JwtPayloadType,
-  ): JwtPayloadType & { refreshToken: string } {
+  validate(req: Request, payload: JwtPayloadType): JwtPayloadType & { refreshToken: string } {
     const refreshToken = req.get('Authorization').replace('Bearer', '').trim();
     return { ...payload, refreshToken };
   }

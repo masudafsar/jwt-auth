@@ -1,11 +1,12 @@
 import { UAParser } from 'ua-parser-js';
-import { Body, Controller, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RegisterDto } from './dtos/register.dto';
 import { AuthTokenDto } from './dtos/auth-token.dto';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
+import { RefreshTokenGuard } from '~/src/common/guards/refreshToken.guard';
 
 @ApiTags('Auth')
 @Controller({ path: 'auth', version: ['1'] })
@@ -36,5 +37,18 @@ export class AuthController {
     const ua = UAParser(request.get('user-agent'));
     const sessionTitle = `${ua.os.name} (v${ua.os.version}): ${ua.browser.name} (${ua.browser.version})`;
     return this.authService.login(loginDto, sessionTitle);
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Get('logout')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Logout user' })
+  async logout(
+    @Request()
+    request: ExpressRequest,
+  ): Promise<any> {
+    const userId = request.user['sub'];
+    const token = request.get('Authorization').replace('Bearer', '').trim();
+    return this.authService.logout(userId, token);
   }
 }

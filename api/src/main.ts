@@ -14,10 +14,9 @@ async function bootstrap() {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('JWT Auth API')
-    .setDescription(
-      'Documentation for an API which provides authentication with jwt access token and refresh token',
-    )
+    .setDescription('Documentation for an API which provides authentication with jwt access token and refresh token')
     .setVersion(packageConfig.version)
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('/docs', app, document, {
