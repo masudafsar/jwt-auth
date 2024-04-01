@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { UserService } from '~/src/user/user.service';
 import { jwtConfigType } from './configs/jwt.config';
 import { RegisterDto } from './dtos/register.dto';
+import { LoginDto } from './dtos/login.dto';
 import { AuthTokenDto } from './dtos/auth-token.dto';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { JwtPayloadType } from './types/jwt-payload-type';
@@ -27,6 +28,18 @@ export class AuthService {
     const newUser = await this.usersService.create(registerDto);
     const tokens = await this.generateAuthTokens(newUser.id, newUser.username);
     await this.updateRefresh(newUser.id, tokens.refreshToken, sessionTitle);
+    return tokens;
+  }
+
+  async login(loginDto: LoginDto, sessionTitle: string): Promise<AuthTokenDto> {
+    const user = await this.usersService.findByUsername(loginDto.username);
+    if (!user) throw new BadRequestException('Username or password is incorrect');
+
+    const passwordMatched = await user.verifyPassword(loginDto.password);
+    if (!passwordMatched) throw new BadRequestException('Username or password is incorrect');
+
+    const tokens = await this.generateAuthTokens(user.id, user.username);
+    await this.updateRefresh(user.id, tokens.refreshToken, sessionTitle);
     return tokens;
   }
 
