@@ -20,7 +20,7 @@ export class AuthController {
     registerDto: RegisterDto,
   ): Promise<AuthTokenDto> {
     const ua = UAParser(request.headers['user-agent']);
-    const title = `${ua.os.name} (v${ua.os.version}): ${ua.browser.name} (${ua.browser.version})`;
-    return this.authService.register(registerDto, title);
+    const sessionTitle = `${ua.os.name} (v${ua.os.version}): ${ua.browser.name} (${ua.browser.version})`;
+    return this.authService.register(registerDto, sessionTitle);
   }
 }

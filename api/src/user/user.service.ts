@@ -14,14 +14,22 @@ export class UserService {
     return await this.userRepository.find();
   }
 
-  async findById(id: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id });
+  async findById(id: string): Promise<User | null> {
+    return await this.userRepository.findOneBy({ id });
+  }
+
+  async findOrFailById(id: string): Promise<User> {
+    const user = await this.findById(id);
     if (!user) throw new NotFoundException(`User '${id}' not found`);
     return user;
   }
 
-  async findByUsername(username: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ username });
+  async findByUsername(username: string): Promise<User | null> {
+    return await this.userRepository.findOneBy({ username });
+  }
+
+  async findOrFailByUsername(username: string): Promise<User> {
+    const user = await this.findByUsername(username);
     if (!user) throw new NotFoundException(`'${username}' not found`);
     return user;
   }
@@ -32,14 +40,14 @@ export class UserService {
   }
 
   async update(id: string, user: DeepPartial<User>): Promise<User> {
-    await this.findById(id);
+    await this.findOrFailById(id);
     const updatedUser = this.userRepository.create(user);
     await this.userRepository.update(id, updatedUser);
-    return await this.findById(id);
+    return await this.findOrFailById(id);
   }
 
   async remove(id: string): Promise<void> {
-    await this.findById(id);
+    await this.findOrFailById(id);
     await this.userRepository.delete(id);
   }
 }

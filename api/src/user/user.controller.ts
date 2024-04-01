@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
@@ -32,7 +24,7 @@ export class UserController {
     @Param('id')
     id: string,
   ): Promise<User> {
-    return this.usersService.findById(id);
+    return this.usersService.findOrFailById(id);
   }
 
   @Get('username/:username')
@@ -42,7 +34,7 @@ export class UserController {
     @Param('username')
     username: string,
   ): Promise<User> {
-    return this.usersService.findByUsername(username);
+    return this.usersService.findOrFailByUsername(username);
   }
 
   @Post()
