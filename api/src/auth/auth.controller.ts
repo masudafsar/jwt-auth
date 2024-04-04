@@ -1,4 +1,3 @@
-import { UAParser } from 'ua-parser-js';
 import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -7,6 +6,7 @@ import { AuthTokenDto } from './dtos/auth-token.dto';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshTokenGuard } from '~/src/common/guards/refreshToken.guard';
+import { getBearerToken, getDeviceTitle } from '~/src/common/utils/request';
 
 @ApiTags('Auth')
 @Controller({ path: 'auth', version: ['1'] })
@@ -21,8 +21,7 @@ export class AuthController {
     @Body()
     registerDto: RegisterDto,
   ): Promise<AuthTokenDto> {
-    const ua = UAParser(request.get('user-agent'));
-    const sessionTitle = `${ua.os.name} (v${ua.os.version}): ${ua.browser.name} (${ua.browser.version})`;
+    const sessionTitle = getDeviceTitle(request);
     return this.authService.register(registerDto, sessionTitle);
   }
 
@@ -34,8 +33,7 @@ export class AuthController {
     @Body()
     loginDto: LoginDto,
   ): Promise<AuthTokenDto> {
-    const ua = UAParser(request.get('user-agent'));
-    const sessionTitle = `${ua.os.name} (v${ua.os.version}): ${ua.browser.name} (${ua.browser.version})`;
+    const sessionTitle = getDeviceTitle(request);
     return this.authService.login(loginDto, sessionTitle);
   }
 
@@ -48,7 +46,7 @@ export class AuthController {
     request: ExpressRequest,
   ): Promise<any> {
     const userId = request.user['sub'];
-    const token = request.get('Authorization').replace('Bearer', '').trim();
+    const token = getBearerToken(request);
     return this.authService.logout(userId, token);
   }
 }

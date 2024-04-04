@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import * as process from 'process';
 import { Request } from 'express';
 import { JwtPayloadType } from '../types/jwt-payload-type';
+import { getBearerToken } from '~/src/common/utils/request';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
@@ -16,7 +17,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
   }
 
   validate(req: Request, payload: JwtPayloadType): JwtPayloadType & { refreshToken: string } {
-    const refreshToken = req.get('Authorization').replace('Bearer', '').trim();
+    const refreshToken = getBearerToken(req);
     return { ...payload, refreshToken };
   }
 }
