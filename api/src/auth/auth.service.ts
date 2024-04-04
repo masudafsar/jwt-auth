@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { UserService } from '~/src/user/user.service';
+import { User } from '~/src/user/entities/user.entity';
 import { jwtConfigType } from './configs/jwt.config';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -44,16 +45,8 @@ export class AuthService {
   }
 
   async logout(userId: string, refreshToken: string): Promise<void> {
-    const user = await this.usersService.findOrFailById(userId);
-
-    delete user.joinedAt;
-    delete user.updatedAt;
-    delete user.verifiedAt;
-    delete user.username;
-    delete user.password;
-
     const token = await this.refreshTokenRepository.findOneBy({
-      user: user,
+      user: { id: userId } as User,
       token: refreshToken,
       revokedAt: IsNull(),
     });
