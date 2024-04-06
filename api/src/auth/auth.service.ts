@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
 import { UserService } from '~/src/user/user.service';
-import { User } from '~/src/user/entities/user.entity';
+import { RefreshTokenService } from './refresh-token.service';
 import { jwtConfigType } from './configs/jwt.config';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -16,7 +15,7 @@ import { JwtPayloadType } from './types/jwt-payload-type';
 export class AuthService {
   constructor(
     @InjectRepository(RefreshToken)
-    private readonly refreshTokenRepository: Repository<RefreshToken>,
+    private readonly refreshTokenService: RefreshTokenService,
     private readonly usersService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -28,7 +27,11 @@ export class AuthService {
 
     const newUser = await this.usersService.create(registerDto);
     const tokens = await this.generateAuthTokens(newUser.id, newUser.username);
-    await this.updateRefresh(newUser.id, tokens.refreshToken, sessionTitle);
+    await this.refreshTokenService.create({
+      userId: newUser.id,
+      token: tokens.refreshToken,
+      title: sessionTitle,
+    });
     return tokens;
   }
 
@@ -40,55 +43,33 @@ export class AuthService {
     if (!passwordMatched) throw new BadRequestException('Username or password is incorrect');
 
     const tokens = await this.generateAuthTokens(user.id, user.username);
-    await this.updateRefresh(user.id, tokens.refreshToken, sessionTitle);
+    await this.refreshTokenService.create({
+      userId: user.id,
+      token: tokens.refreshToken,
+      title: sessionTitle,
+    });
     return tokens;
   }
 
   async logout(userId: string, refreshToken: string): Promise<void> {
-    const token = await this.refreshTokenRepository.findOneBy({
-      user: { id: userId } as User,
-      token: refreshToken,
-      revokedAt: IsNull(),
-    });
-    if (!token) throw new NotFoundException(`Token not found`);
-
-    const revokedToken = this.refreshTokenRepository.create({ revokedAt: new Date() });
-    await this.refreshTokenRepository.update(token.id, revokedToken);
-  }
-
-  async updateRefresh(id: string, token: string, title?: string): Promise<void> {
-    const user = await this.usersService.findOrFailById(id);
-    const refreshToken = this.refreshTokenRepository.create({
-      user,
-      token,
-      title: title || null,
-    });
-    await this.refreshTokenRepository.save(refreshToken);
+    await this.refreshTokenService.revoke({ userId, token: refreshToken });
   }
 
   private async generateAuthTokens(id: string, username: string): Promise<AuthTokenDto> {
+    const payload: JwtPayloadType = {
+      sub: id,
+      username,
+    };
     const secrets = this.configService.get<jwtConfigType>('jwtConfig');
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        {
-          sub: id,
-          username,
-        } as JwtPayloadType,
-        {
-          secret: secrets.accessSecret,
-          expiresIn: '15m',
-        },
-      ),
-      this.jwtService.signAsync(
-        {
-          sub: id,
-          username,
-        } as JwtPayloadType,
-        {
-          secret: secrets.refreshSecret,
-          expiresIn: '30d',
-        },
-      ),
+      this.jwtService.signAsync(payload, {
+        secret: secrets.accessSecret,
+        expiresIn: '15m',
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: secrets.refreshSecret,
+        expiresIn: '30d',
+      }),
     ]);
 
     return { accessToken, refreshToken };

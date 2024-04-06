@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from '~/src/user/user.module';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
@@ -7,8 +8,8 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { jwtConfig } from './configs/jwt.config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { RefreshToken } from '~/src/auth/entities/refresh-token.entity';
+import { RefreshToken } from './entities/refresh-token.entity';
+import { RefreshTokenService } from './refresh-token.service';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { RefreshToken } from '~/src/auth/entities/refresh-token.entity';
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
+  providers: [AuthService, RefreshTokenService, AccessTokenStrategy, RefreshTokenStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
