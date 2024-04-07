@@ -14,7 +14,6 @@ import { JwtPayloadType } from './types/jwt-payload-type';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(RefreshToken)
     private readonly refreshTokenService: RefreshTokenService,
     private readonly usersService: UserService,
     private readonly jwtService: JwtService,
@@ -25,10 +24,14 @@ export class AuthService {
     const isUserExist = await this.usersService.findByUsername(registerDto.username);
     if (isUserExist) throw new BadRequestException('User already exists');
 
-    const newUser = await this.usersService.create(registerDto);
-    const tokens = await this.generateAuthTokens(newUser.id, newUser.username);
+    const user = await this.usersService.create(registerDto);
+
+    const tokens = await this.generateAuthTokens({
+      sub: user.id,
+      username: user.username,
+    });
     await this.refreshTokenService.create({
-      userId: newUser.id,
+      userId: user.id,
       token: tokens.refreshToken,
       title: sessionTitle,
     });
@@ -42,7 +45,10 @@ export class AuthService {
     const passwordMatched = await user.verifyPassword(loginDto.password);
     if (!passwordMatched) throw new BadRequestException('Username or password is incorrect');
 
-    const tokens = await this.generateAuthTokens(user.id, user.username);
+    const tokens = await this.generateAuthTokens({
+      sub: user.id,
+      username: user.username,
+    });
     await this.refreshTokenService.create({
       userId: user.id,
       token: tokens.refreshToken,
@@ -52,14 +58,22 @@ export class AuthService {
   }
 
   async logout(userId: string, refreshToken: string): Promise<void> {
-    await this.refreshTokenService.revoke({ userId, token: refreshToken });
+    return await this.refreshTokenService.revoke({ userId, token: refreshToken });
   }
 
-  private async generateAuthTokens(id: string, username: string): Promise<AuthTokenDto> {
-    const payload: JwtPayloadType = {
-      sub: id,
-      username,
-    };
+  async refresh(userId: string, username: string, refreshToken: string): Promise<AuthTokenDto> {
+    const newTokens = await this.generateAuthTokens({
+      sub: userId,
+      username: username,
+    });
+    await this.refreshTokenService.refresh({
+      oldToken: refreshToken,
+      newToken: newTokens.refreshToken,
+    });
+    return newTokens;
+  }
+
+  private async generateAuthTokens(payload: JwtPayloadType): Promise<AuthTokenDto> {
     const secrets = this.configService.get<jwtConfigType>('jwtConfig');
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {

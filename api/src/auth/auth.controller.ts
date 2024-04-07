@@ -44,9 +44,23 @@ export class AuthController {
   async logout(
     @Request()
     request: ExpressRequest,
-  ): Promise<any> {
+  ): Promise<void> {
     const userId = request.user['sub'];
     const token = getBearerToken(request);
     return this.authService.logout(userId, token);
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Get('refresh')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Refresh access token' })
+  async refresh(
+    @Request()
+    request: ExpressRequest,
+  ): Promise<AuthTokenDto> {
+    const userId = request.user['sub'];
+    const username = request.user['username'];
+    const token = getBearerToken(request);
+    return this.authService.refresh(userId, username, token);
   }
 }
