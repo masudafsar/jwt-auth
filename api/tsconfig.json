@@ -22,8 +22,8 @@
       "~/src/*": [
         "./src/*",
       ],
-      "~/config/*": [
-        "./config/*"
+      "~/configs/*": [
+        "./configs/*"
       ]
     }
   }

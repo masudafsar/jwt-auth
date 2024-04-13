@@ -1,14 +1,17 @@
+import * as process from 'process';
+import { hash, verify } from 'argon2';
 import {
   BeforeInsert,
   BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { RefreshToken } from '~/src/auth/entities/refresh-token.entity';
 
 @Entity()
 export class User {
@@ -20,17 +23,17 @@ export class User {
   @Column({ name: 'username', unique: true, nullable: false })
   username: string;
 
-  @ApiProperty()
-  @Column({ name: 'password', nullable: false, select: false })
+  // @ApiProperty({})
+  @Column({ name: 'password', nullable: false })
   password: string;
 
   @ApiPropertyOptional({ example: 'John' })
   @Column({ name: 'first_name', nullable: true })
-  firstName: string;
+  firstName: string | null;
 
   @ApiPropertyOptional({ example: 'Doe' })
   @Column({ name: 'last_name', nullable: true })
-  lastName: string;
+  lastName: string | null;
 
   @ApiPropertyOptional()
   @CreateDateColumn({ name: 'joined_at', type: 'timestamp with time zone' })
@@ -47,16 +50,28 @@ export class User {
     default: null,
     type: 'timestamp with time zone',
   })
-  verifiedAt: Date;
+  verifiedAt: Date | null;
+
+  @OneToMany(() => RefreshToken, (token) => token.user, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+    nullable: true,
+  })
+  tokens: RefreshToken[];
 
   @BeforeInsert()
   @BeforeUpdate()
-  async hashPassword() {
+  async hashPassword(): Promise<void> {
     if (!this.password) return;
-    this.password = await bcrypt.hash(this.password, 10);
+    this.password = await hash(this.password, {
+      secret: Buffer.from(process.env.PASSWORD_HASH_SECRET),
+      salt: Buffer.from(process.env.PASSWORD_HASH_SALT),
+    });
   }
 
-  async validatePassword(password: string) {
-    return await bcrypt.compare(this.password, password);
+  async verifyPassword(password: string): Promise<boolean> {
+    return await verify(this.password, password, {
+      secret: Buffer.from(process.env.PASSWORD_HASH_SECRET),
+    });
   }
 }
